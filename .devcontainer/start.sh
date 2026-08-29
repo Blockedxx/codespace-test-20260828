@@ -45,10 +45,25 @@ transport.useCompression = false
 EOF
 fi
 
-# 3. 允许 SSH 密码登录并设置 codespace 用户密码
-sudo bash -c 'echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/99-password.conf'
+# 3. 确保 sshd 安装在 2222 端口监听、允许密码登录、设置密码
+#    （Codespace 重启后平台 sshd 不保证自动启动，这里自行管理，保证 frpc 转发目标可用）
+if ! command -v sshd >/dev/null 2>&1; then
+  log "installing openssh-server..."
+  sudo apt-get update -qq && sudo apt-get install -y -qq openssh-server
+fi
+sudo mkdir -p /run/sshd
+sudo bash -c 'test -f /etc/ssh/ssh_host_rsa_key || ssh-keygen -A >/dev/null'
+sudo bash -c 'cat > /etc/ssh/sshd_config.d/99-codespace-frp.conf <<EOF
+Port 2222
+PasswordAuthentication yes
+PermitRootLogin no
+UsePAM yes
+EOF'
 echo "codespace:123" | sudo chpasswd
-sudo pkill -HUP sshd || true
+if ! pgrep -x sshd >/dev/null; then
+  log "starting sshd on 2222"
+  sudo /usr/sbin/sshd -E /var/log/sshd.log || true
+fi
 
 # 4. 启动 frpc（若未运行）
 if ! pgrep -x frpc >/dev/null; then
