@@ -1,0 +1,5 @@
+{
+  "name": "codespace-frpc",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "postStartCommand": "bash /workspaces/codespace-test-20260828/.devcontainer/start.sh"
+}
