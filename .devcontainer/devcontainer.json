@@ -1,5 +1,10 @@
 {
   "name": "codespace-frpc",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+  },
   "postStartCommand": "bash /workspaces/codespace-test-20260828/.devcontainer/start.sh"
 }
